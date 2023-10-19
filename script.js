@@ -1,5 +1,3 @@
-console.log("Hello world!");
-
 const btn = document.querySelector(".btn-open");
 const form = document.querySelector(".fact-form");
 
@@ -12,3 +10,14 @@ btn.addEventListener("click", function () {
     btn.textContent = "Share a fact";
   }
 });
+
+function calcFactAge(year) {
+  const currentYear = new Date().getFullYear();
+  const age = currentYear - year;
+
+  if (age >= 0) return age;
+  else return "Impossible year";
+}
+
+let votesInteresting = 0;
+let votesMindBlowing = 0;
