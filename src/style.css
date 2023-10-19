@@ -16,7 +16,7 @@ body {
 }
 
 /* MAIN LAYOUT */
-.container {
+#root {
   max-width: 1500px;
   margin: 0 auto;
 }
@@ -61,7 +61,7 @@ h1 {
   margin-top: 6px;
 }
 
-#root {
+.category {
   margin-bottom: 16px;
 }
 

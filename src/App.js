@@ -1,4 +1,6 @@
+import { func } from "prop-types";
 import "./style.css";
+import { useState } from "react";
 
 const CATEGORIES = [
   { name: "technology", color: "#3b82f6" },
@@ -45,25 +47,27 @@ const initialFacts = [
   },
 ];
 
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <span style={{ fontSize: "40px" }}>{count}</span>
+      <button className="btn btn-large" onClick={() => setCount((c) => c + 1)}>
+        +1
+      </button>
+    </div>
+  );
+}
+
 function App() {
-  const appTitle = "What I Learned Today!";
+  const [showForm, setShowForm] = useState(false);
+
   return (
     <>
-      {/* HEADER */}
-      <header className="header">
-        <div className="logo">
-          <img
-            src="logo.png"
-            height="68"
-            width="68"
-            alt="What I Learned Today logo"
-          />
-          <h1>{appTitle}</h1>
-          <button className="btn btn-large btn-open">Share a fact</button>
-        </div>
-      </header>
+      <Header showForm={showForm} setShowForm={setShowForm} />
 
-      <NewFactForm />
+      {showForm ? <NewFactForm /> : null}
 
       <main className="main">
         <CategoryFilter />
@@ -73,12 +77,54 @@ function App() {
   );
 }
 
+function Header({ showForm, setShowForm }) {
+  const appTitle = "What I Learned Today!";
+
+  return (
+    <header className="header">
+      <div className="logo">
+        <img
+          src="logo.png"
+          height="68"
+          width="68"
+          alt="What I Learned Today logo"
+        />
+        <h1>{appTitle}</h1>
+        <button
+          className="btn btn-large btn-open"
+          onClick={() => setShowForm((show) => !show)}
+        >
+          {showForm ? "Close" : "Share a fact"}
+        </button>
+      </div>
+    </header>
+  );
+}
+
 function NewFactForm() {
   return <form className="fact-form">Fact Form</form>;
 }
 
 function CategoryFilter() {
-  return <aside>Category Filter</aside>;
+  return (
+    <aside>
+      <ul>
+        <li className="category">
+          <button className="btn btn-all-categories">All</button>
+        </li>
+        {CATEGORIES.map((cat) => (
+          <li key={cat.name} className="category">
+            <button
+              className="btn btn-category"
+              style={{ backgroundColor: cat.color }}
+            >
+              {cat.name}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  );
 }
 
 function FactList() {
