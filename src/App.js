@@ -66,7 +66,6 @@ function App() {
   return (
     <>
       <Header showForm={showForm} setShowForm={setShowForm} />
-
       {showForm ? <NewFactForm /> : null}
 
       <main className="main">
