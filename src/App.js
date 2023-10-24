@@ -100,7 +100,11 @@ function App() {
 
       <main className="main">
         <CategoryFilter setCurrentCategory={setCurrentCategory} />
-        {isLoading ? <Loader /> : <FactList facts={facts} />}
+        {isLoading ? (
+          <Loader />
+        ) : (
+          <FactList facts={facts} setFacts={setFacts} />
+        )}
       </main>
     </>
   );
@@ -163,17 +167,6 @@ function NewFactForm({ setFacts, setShowForm }) {
       category &&
       text.length <= 200
     ) {
-      // const newFact = {
-      //   id: Math.round(Math.random() * 1000000),
-      //   text,
-      //   source,
-      //   category,
-      //   votesInteresting: 0,
-      //   votesMindblowing: 0,
-      //   votesFalse: 0,
-      //   createdIn: new Date().getFullYear(),
-      // };
-
       setIsUploading(true);
       const { data: newFact, error } = await supabase
         .from("facts")
@@ -254,7 +247,7 @@ function CategoryFilter({ setCurrentCategory }) {
   );
 }
 
-function FactList({ facts }) {
+function FactList({ facts, setFacts }) {
   if (facts.length === 0)
     return (
       <p className="message">
@@ -266,14 +259,31 @@ function FactList({ facts }) {
     <section>
       <ul className="facts-list">
         {facts.map((fact) => (
-          <Fact key={fact.id} fact={fact} />
+          <Fact key={fact.id} fact={fact} setFacts={setFacts} />
         ))}
       </ul>
     </section>
   );
 }
 
-function Fact({ fact }) {
+function Fact({ fact, setFacts }) {
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  async function handleVote(columnName) {
+    setIsUpdating(true);
+    const { data: updatedFact, error } = await supabase
+      .from("facts")
+      .update({ [columnName]: fact[columnName] + 1 })
+      .eq("id", fact.id)
+      .select();
+    setIsUpdating(false);
+
+    if (!error)
+      setFacts((facts) =>
+        facts.map((f) => (f.id === fact.id ? updatedFact[0] : f))
+      );
+  }
+
   return (
     <li key={fact.id} className="fact">
       <p>
@@ -297,13 +307,19 @@ function Fact({ fact }) {
         {fact.category}
       </span>
       <div className="vote-buttons">
-        <button>
+        <button
+          onClick={() => handleVote("votesinteresting")}
+          disabled={isUpdating}
+        >
           👍 <strong>{fact.votesinteresting}</strong>
         </button>
-        <button>
+        <button
+          onClick={() => handleVote("votesmindblowing")}
+          disabled={isUpdating}
+        >
           🤯 <strong>{fact.votesmindblowing}</strong>
         </button>
-        <button>
+        <button onClick={() => handleVote("votesfalse")} disabled={isUpdating}>
           ⛔️ <strong>{fact.votesfalse}</strong>
         </button>
       </div>
@@ -312,27 +328,3 @@ function Fact({ fact }) {
 }
 
 export default App;
-
-// <aside>
-//           <ul>
-//             <li class="category">
-//               <button class="btn btn-all-categories">All</button>
-//             </li>
-//             <li class="category">
-//               <button
-//                 class="btn btn-category"
-//                 style="background-color: #3b82f6"
-//               >
-//                 Technology
-//               </button>
-//             </li>
-//             <li class="category">
-//               <button
-//                 class="btn btn-category"
-//                 style="background-color: #16a34a"
-//               >
-//                 Science
-//               </button>
-//             </li>
-//           </ul>
-//         </aside>
