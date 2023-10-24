@@ -1,6 +1,7 @@
-import { func } from "prop-types";
 import "./style.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import supabase from "./supabase.js";
+import { async } from "q";
 
 const CATEGORIES = [
   { name: "technology", color: "#3b82f6" },
@@ -62,18 +63,44 @@ function Counter() {
 
 function App() {
   const [showForm, setShowForm] = useState(false);
+  const [facts, setFacts] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(function () {
+    async function getFacts() {
+      setIsLoading(true);
+      const { data: facts, error } = await supabase
+        .from("facts")
+        .select("*")
+        .order("votesinteresting", { ascending: false })
+        .limit(100);
+
+      console.log(error);
+      console.log(facts);
+      if (!error) setFacts(facts);
+      else alert("There was a problem getting data");
+      setIsLoading(false);
+    }
+    getFacts();
+  }, []);
 
   return (
     <>
       <Header showForm={showForm} setShowForm={setShowForm} />
-      {showForm ? <NewFactForm /> : null}
+      {showForm ? (
+        <NewFactForm setFacts={setFacts} setShowForm={setShowForm} />
+      ) : null}
 
       <main className="main">
         <CategoryFilter />
-        <FactList />
+        {isLoading ? <Loader /> : <FactList facts={facts} />}
       </main>
     </>
   );
+}
+
+function Loader() {
+  return <p className="message">Loading...</p>;
 }
 
 function Header({ showForm, setShowForm }) {
@@ -100,7 +127,19 @@ function Header({ showForm, setShowForm }) {
   );
 }
 
-function NewFactForm() {
+function isValidHttpUrl(string) {
+  let url;
+
+  try {
+    url = new URL(string);
+  } catch (_) {
+    return false;
+  }
+
+  return url.protocol === "http:" || url.protocol === "https:";
+}
+
+function NewFactForm({ setFacts, setShowForm }) {
   const [text, setText] = useState("");
   const [source, setSource] = useState("");
   const [category, setCategory] = useState("");
@@ -108,7 +147,33 @@ function NewFactForm() {
 
   function handleSubmit(e) {
     e.preventDefault();
-    /// here
+    console.log(text, source, category);
+    if (
+      text &&
+      isValidHttpUrl(source) &&
+      source &&
+      category &&
+      text.length <= 200
+    ) {
+      const newFact = {
+        id: Math.round(Math.random() * 1000000),
+        text,
+        source,
+        category,
+        votesInteresting: 0,
+        votesMindblowing: 0,
+        votesFalse: 0,
+        createdIn: new Date().getFullYear(),
+      };
+
+      setFacts((facts) => [newFact, ...facts]);
+
+      setText("");
+      setSource("");
+      setCategory("");
+
+      setShowForm((show) => !show);
+    }
   }
 
   return (
@@ -134,7 +199,7 @@ function NewFactForm() {
           </option>
         ))}
       </select>
-      <button class="btn btn-large">Post</button>
+      <button className="btn btn-large">Post</button>
     </form>
   );
 }
@@ -161,8 +226,7 @@ function CategoryFilter() {
   );
 }
 
-function FactList() {
-  const facts = initialFacts;
+function FactList({ facts }) {
   return (
     <section>
       <ul className="facts-list">
@@ -199,13 +263,13 @@ function Fact({ fact }) {
       </span>
       <div className="vote-buttons">
         <button>
-          👍 <strong>{fact.votesInteresting}</strong>
+          👍 <strong>{fact.votesinteresting}</strong>
         </button>
         <button>
-          🤯 <strong>{fact.votesMindblowing}</strong>
+          🤯 <strong>{fact.votesmindblowing}</strong>
         </button>
         <button>
-          ⛔️ <strong>{fact.votesFalse}</strong>
+          ⛔️ <strong>{fact.votesfalse}</strong>
         </button>
       </div>
     </li>
